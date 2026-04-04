@@ -22,5 +22,5 @@ RUN python manage.py collectstatic --noinput 2>/dev/null || true
 
 EXPOSE 8000
 
-# Run migrations at runtime 
-CMD ["sh", "-c", "sleep 5 && python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:8000"]
+# Default command (docker-compose overrides this with migrate + runserver)
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]

@@ -10,19 +10,20 @@ A clean, lightweight blog application built with **Django 6.0**. Users can brows
 - **Post Detail Page** — Displays the full content of a selected blog post
 - **Admin Panel** — Create, edit, and delete posts via Django's built-in admin interface
 - **SQLite Database** — Zero-configuration database for local development
+- **PostgreSQL Support** — Production-ready PostgreSQL via Docker Compose
 
 ---
 
 ## 🛠 Tech Stack
 
-| Layer      | Technology       |
-| ---------- | ---------------- |
-| Language   | Python 3.13+     |
-| Framework  | Django 6.0.3     |
-| Database   | SQLite 3         |
-| Templating | Django Templates |
-| Styling    | Inline CSS       |
-| Container  | Docker           |
+| Layer      | Technology                          |
+| ---------- | ----------------------------------- |
+| Language   | Python 3.13+                        |
+| Framework  | Django 6.0.3                        |
+| Database   | SQLite 3 (local) / PostgreSQL (prod)|
+| Templating | Django Templates                    |
+| Styling    | Inline CSS                          |
+| Container  | Docker & Docker Compose             |
 
 ---
 
@@ -33,7 +34,7 @@ simple-django-blog-app/
 ├── blogs/                  # Django project configuration
 │   ├── __init__.py
 │   ├── asgi.py             # ASGI entry point
-│   ├── settings.py         # Project settings
+│   ├── settings.py         # Project settings (SQLite / PostgreSQL)
 │   ├── urls.py             # Root URL configuration
 │   └── wsgi.py             # WSGI entry point
 │
@@ -53,6 +54,7 @@ simple-django-blog-app/
 │
 ├── .dockerignore           # Files excluded from Docker build
 ├── .gitignore
+├── docker-compose.yaml     # Multi-container setup (Django + PostgreSQL)
 ├── Dockerfile              # Multi-stage Docker image definition
 ├── manage.py               # Django management script
 ├── requirements.txt        # Python dependencies
@@ -61,7 +63,19 @@ simple-django-blog-app/
 
 ---
 
-## 🚀 Getting Started
+## 🗄 Database Strategy
+
+| Environment          | Database   | Configuration              |
+| -------------------- | ---------- | -------------------------- |
+| Local development    | SQLite 3   | Default — no setup needed  |
+| Docker Compose       | PostgreSQL | Automatic via env vars     |
+| GitLab CI / Production | PostgreSQL | Set `USE_POSTGRES=True`  |
+
+The app uses SQLite by default. When the environment variable `USE_POSTGRES=True` is set (automatically done in `docker-compose.yaml`), it switches to PostgreSQL using `POSTGRES_*` env vars.
+
+---
+
+## 🚀 Getting Started (Local)
 
 ### Prerequisites
 
@@ -116,23 +130,58 @@ simple-django-blog-app/
 
 ---
 
-## 🐳 Run with Docker
+## 🐳 Run with Docker Compose (Recommended)
 
-If you prefer containers over a local Python setup, you can run the app with Docker in just two commands.
+Spins up Django + PostgreSQL together with a single command. Migrations run automatically on startup.
 
 ### Prerequisites
 
-- **Docker** installed and running ([Get Docker](https://docs.docker.com/get-docker/))
+- **Docker** and **Docker Compose** installed ([Get Docker](https://docs.docker.com/get-docker/))
 
-### Build the image
+### Start the application
+
+```bash
+docker compose up --build
+```
+
+This will:
+- Build the Django image
+- Start a PostgreSQL 15 database with a healthcheck
+- Run migrations automatically once the database is ready
+- Serve the app at **http://localhost:8000/**
+
+### Create an admin user
+
+```bash
+docker compose exec web python manage.py createsuperuser
+```
+
+### Stop the application
+
+```bash
+docker compose down
+```
+
+### Useful commands
+
+| Command | Description |
+| --- | --- |
+| `docker compose up -d` | Start in detached (background) mode |
+| `docker compose logs -f web` | Follow Django container logs |
+| `docker compose logs -f db` | Follow PostgreSQL logs |
+| `docker compose down -v` | Stop and **delete database data** |
+| `docker compose exec web python manage.py shell` | Open Django shell |
+
+---
+
+## 🐳 Run with Docker (Standalone — SQLite)
+
+If you only need the Django app without PostgreSQL, you can use Docker directly. This runs with SQLite.
+
+### Build and run
 
 ```bash
 docker build -t django-blog .
-```
-
-### Run the container
-
-```bash
 docker run -d -p 8000:8000 --name blog django-blog
 ```
 
