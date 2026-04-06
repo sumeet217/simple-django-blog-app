@@ -225,8 +225,3 @@ docker exec -it blog python manage.py createsuperuser
 | `body`       | `CharField(1M)`   | Full body content of the post        |
 | `created_at` | `DateTimeField`   | Timestamp when the post was created  |
 
----
-
-## 📄 License
-
-This project is open source and available for personal and educational use.
